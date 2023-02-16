@@ -1,0 +1,474 @@
+2023-02-16 14:18:38 [INFO] [task_scheduler.cc:158] Initializing Task #54: "fused_nn_global_avg_pool2d"
+2023-02-16 14:18:38 [INFO] [task_scheduler.cc:35] 
+# from tvm.script import tir as T
+@tvm.script.ir_module
+class Module:
+    @T.prim_func
+    def main(p0: T.Buffer[(1, 64, 7, 7, 32), "float32"], tensor: T.Buffer[(1, 64, 1, 1, 32), "float32"]):
+        # function attr dict
+        T.func_attr({"global_symbol": "main", "tir.noalias": True})
+        # body
+        # with T.block("root")
+        tensor_1 = T.alloc_buffer([1, 64, 1, 1, 32], dtype="float32")
+        for i0, i1, i2, i3, i4, i5, i6 in T.grid(1, 64, 1, 1, 32, 7, 7):
+            with T.block("tensor"):
+                ax0, ax1, ax2, ax3, ax4, rv0, rv1 = T.axis.remap("SSSSSRR", [i0, i1, i2, i3, i4, i5, i6])
+                T.reads(p0[ax0, ax1, ax2 * 7 + rv0, ax3 * 7 + rv1, ax4])
+                T.writes(tensor_1[ax0, ax1, ax2, ax3, ax4])
+                with T.init():
+                    tensor_1[ax0, ax1, ax2, ax3, ax4] = T.float32(0)
+                tensor_1[ax0, ax1, ax2, ax3, ax4] = tensor_1[ax0, ax1, ax2, ax3, ax4] + p0[ax0, ax1, ax2 * 7 + rv0, ax3 * 7 + rv1, ax4]
+        for i0, i1, i2, i3, i4 in T.grid(1, 64, 1, 1, 32):
+            with T.block("tensor_1"):
+                ax0, ax1, ax2, ax3, ax4 = T.axis.remap("SSSSS", [i0, i1, i2, i3, i4])
+                T.reads(tensor_1[ax0, ax1, ax2, ax3, ax4])
+                T.writes(tensor[ax0, ax1, ax2, ax3, ax4])
+                tensor[ax0, ax1, ax2, ax3, ax4] = tensor_1[ax0, ax1, ax2, ax3, ax4] * T.float32(0.020408163265306121)
+    
+
+2023-02-16 14:18:38 [INFO] [task_scheduler.cc:162] Total 3 design space(s) generated
+2023-02-16 14:18:38 [INFO] [task_scheduler.cc:168] Design space #0:
+# from tvm.script import tir as T
+@tvm.script.ir_module
+class Module:
+    @T.prim_func
+    def main(p0: T.Buffer[(1, 64, 7, 7, 32), "float32"], tensor: T.Buffer[(1, 64, 1, 1, 32), "float32"]):
+        # function attr dict
+        T.func_attr({"global_symbol": "main", "tir.noalias": True})
+        # body
+        with T.block("root"):
+            T.reads()
+            T.writes()
+            T.block_attr({"meta_schedule.parallel":96, "meta_schedule.unroll_explicit":16, "meta_schedule.vectorize":64})
+            tensor_1 = T.alloc_buffer([1, 64, 1, 1, 32], dtype="float32")
+            tensor_rf = T.alloc_buffer([1, 64, 1, 1, 32, 1], dtype="float32")
+            for i0, i1, i2, i3, i4, i5_i6_fused_0, i5_i6_fused_1 in T.grid(1, 64, 1, 1, 32, 1, 49):
+                with T.block("tensor_rf"):
+                    vi5_i6_fused_0, ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_1 = T.axis.remap("SSSSSSR", [i5_i6_fused_0, i0, i1, i2, i3, i4, i5_i6_fused_1])
+                    T.reads(p0[ax0, ax1, ax2 * 7 + (vi5_i6_fused_0 * 49 + vi5_i6_fused_1) // 7, ax3 * 7 + (vi5_i6_fused_0 * 49 + vi5_i6_fused_1) % 7, ax4])
+                    T.writes(tensor_rf[ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_0])
+                    with T.init():
+                        tensor_rf[ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_0] = T.float32(0)
+                    tensor_rf[ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_0] = tensor_rf[ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_0] + p0[ax0, ax1, ax2 * 7 + (vi5_i6_fused_0 * 49 + vi5_i6_fused_1) // 7, ax3 * 7 + (vi5_i6_fused_0 * 49 + vi5_i6_fused_1) % 7, ax4]
+            for i0, i1, i2, i3, i4 in T.grid(1, 64, 1, 1, 32):
+                for ax0, ax1, ax2, ax3, ax4, ax5 in T.grid(1, 1, 1, 1, 1, 1):
+                    with T.block("tensor"):
+                        vi5_i6_fused_0, ax0_1 = T.axis.remap("RS", [ax0, ax1])
+                        ax1_1 = T.axis.spatial(64, i1 + ax2)
+                        ax2_1, ax3_1 = T.axis.remap("SS", [ax3, ax4])
+                        ax4_1 = T.axis.spatial(32, i4 + ax5)
+                        T.reads(tensor_rf[ax0_1, ax1_1, ax2_1, ax3_1, ax4_1, vi5_i6_fused_0])
+                        T.writes(tensor_1[ax0_1, ax1_1, ax2_1, ax3_1, ax4_1])
+                        with T.init():
+                            tensor_1[ax0_1, ax1_1, ax2_1, ax3_1, ax4_1] = T.float32(0)
+                        tensor_1[ax0_1, ax1_1, ax2_1, ax3_1, ax4_1] = tensor_1[ax0_1, ax1_1, ax2_1, ax3_1, ax4_1] + tensor_rf[ax0_1, ax1_1, ax2_1, ax3_1, ax4_1, vi5_i6_fused_0]
+                with T.block("tensor_1"):
+                    ax0, ax1, ax2, ax3, ax4 = T.axis.remap("SSSSS", [i0, i1, i2, i3, i4])
+                    T.reads(tensor_1[ax0, ax1, ax2, ax3, ax4])
+                    T.writes(tensor[ax0, ax1, ax2, ax3, ax4])
+                    tensor[ax0, ax1, ax2, ax3, ax4] = tensor_1[ax0, ax1, ax2, ax3, ax4] * T.float32(0.020408163265306121)
+    
+
+b0 = sch.get_block(name="tensor", func_name="main")
+b1 = sch.get_block(name="root", func_name="main")
+l2, l3, l4, l5, l6, l7, l8 = sch.get_loops(block=b0)
+l9 = sch.fuse(l7, l8, preserve_unit_iters=True)
+v10, v11 = sch.sample_perfect_tile(loop=l9, n=2, max_innermost_factor=64, decision=[1, 49])
+l12, l13 = sch.split(loop=l9, factors=[v10, v11], preserve_unit_iters=True)
+b14 = sch.rfactor(loop=l12, factor_axis=5)
+sch.annotate(block_or_loop=b0, ann_key="meta_schedule.random_compute_producer", ann_val=1)
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.parallel", ann_val=96)
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.vectorize", ann_val=64)
+v15 = sch.sample_categorical(candidates=[0, 16, 64, 512], probs=[0.25, 0.25, 0.25, 0.25], decision=1)
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.unroll_explicit", ann_val=v15)
+b16, = sch.get_producers(block=b0)
+sch.unannotate(block_or_loop=b0, ann_key="meta_schedule.random_compute_producer")
+l17 = sch.sample_compute_location(block=b0, decision=4)
+sch.compute_at(block=b0, loop=l17, preserve_unit_loops=True, index=-1)
+l18 = sch.sample_compute_location(block=b16, decision=-1)
+sch.compute_at(block=b16, loop=l18, preserve_unit_loops=True, index=-1)
+2023-02-16 14:18:38 [INFO] [task_scheduler.cc:168] Design space #1:
+# from tvm.script import tir as T
+@tvm.script.ir_module
+class Module:
+    @T.prim_func
+    def main(p0: T.Buffer[(1, 64, 7, 7, 32), "float32"], tensor: T.Buffer[(1, 64, 1, 1, 32), "float32"]):
+        # function attr dict
+        T.func_attr({"global_symbol": "main", "tir.noalias": True})
+        # body
+        with T.block("root"):
+            T.reads()
+            T.writes()
+            T.block_attr({"meta_schedule.parallel":96, "meta_schedule.unroll_explicit":0, "meta_schedule.vectorize":64})
+            tensor_1 = T.alloc_buffer([1, 64, 1, 1, 32], dtype="float32")
+            tensor_rf = T.alloc_buffer([1, 64, 1, 1, 32, 49], dtype="float32")
+            for i0, i1 in T.grid(1, 64):
+                for ax0, ax1, ax2, ax3, ax4, ax5, ax6 in T.grid(49, 1, 1, 1, 1, 32, 1):
+                    with T.block("tensor_rf"):
+                        vi5_i6_fused_1, ax0_1 = T.axis.remap("SS", [ax0, ax1])
+                        ax1_1 = T.axis.spatial(64, i1 + ax2)
+                        ax2_1, ax3_1, ax4_1, vi5_i6_fused_0 = T.axis.remap("SSSR", [ax3, ax4, ax5, ax6])
+                        T.reads(p0[ax0_1, ax1_1, ax2_1 * 7 + (vi5_i6_fused_0 * 49 + vi5_i6_fused_1) // 7, ax3_1 * 7 + (vi5_i6_fused_0 * 49 + vi5_i6_fused_1) % 7, ax4_1])
+                        T.writes(tensor_rf[ax0_1, ax1_1, ax2_1, ax3_1, ax4_1, vi5_i6_fused_1])
+                        with T.init():
+                            tensor_rf[ax0_1, ax1_1, ax2_1, ax3_1, ax4_1, vi5_i6_fused_1] = T.float32(0)
+                        tensor_rf[ax0_1, ax1_1, ax2_1, ax3_1, ax4_1, vi5_i6_fused_1] = tensor_rf[ax0_1, ax1_1, ax2_1, ax3_1, ax4_1, vi5_i6_fused_1] + p0[ax0_1, ax1_1, ax2_1 * 7 + (vi5_i6_fused_0 * 49 + vi5_i6_fused_1) // 7, ax3_1 * 7 + (vi5_i6_fused_0 * 49 + vi5_i6_fused_1) % 7, ax4_1]
+                for i2, i3, i4 in T.grid(1, 1, 32):
+                    for ax0, ax1, ax2, ax3, ax4, ax5 in T.grid(49, 1, 1, 1, 1, 1):
+                        with T.block("tensor"):
+                            vi5_i6_fused_1, ax0_2 = T.axis.remap("RS", [ax0, ax1])
+                            ax1_2 = T.axis.spatial(64, i1 + ax2)
+                            ax2_2, ax3_2 = T.axis.remap("SS", [ax3, ax4])
+                            ax4_2 = T.axis.spatial(32, i4 + ax5)
+                            T.reads(tensor_rf[ax0_2, ax1_2, ax2_2, ax3_2, ax4_2, vi5_i6_fused_1])
+                            T.writes(tensor_1[ax0_2, ax1_2, ax2_2, ax3_2, ax4_2])
+                            with T.init():
+                                tensor_1[ax0_2, ax1_2, ax2_2, ax3_2, ax4_2] = T.float32(0)
+                            tensor_1[ax0_2, ax1_2, ax2_2, ax3_2, ax4_2] = tensor_1[ax0_2, ax1_2, ax2_2, ax3_2, ax4_2] + tensor_rf[ax0_2, ax1_2, ax2_2, ax3_2, ax4_2, vi5_i6_fused_1]
+                    with T.block("tensor_1"):
+                        ax0_3, ax1_3, ax2_3, ax3_3, ax4_3 = T.axis.remap("SSSSS", [i0, i1, i2, i3, i4])
+                        T.reads(tensor_1[ax0_3, ax1_3, ax2_3, ax3_3, ax4_3])
+                        T.writes(tensor[ax0_3, ax1_3, ax2_3, ax3_3, ax4_3])
+                        tensor[ax0_3, ax1_3, ax2_3, ax3_3, ax4_3] = tensor_1[ax0_3, ax1_3, ax2_3, ax3_3, ax4_3] * T.float32(0.020408163265306121)
+    
+
+b0 = sch.get_block(name="tensor", func_name="main")
+b1 = sch.get_block(name="root", func_name="main")
+l2, l3, l4, l5, l6, l7, l8 = sch.get_loops(block=b0)
+l9 = sch.fuse(l7, l8, preserve_unit_iters=True)
+v10, v11 = sch.sample_perfect_tile(loop=l9, n=2, max_innermost_factor=64, decision=[1, 49])
+l12, l13 = sch.split(loop=l9, factors=[v10, v11], preserve_unit_iters=True)
+b14 = sch.rfactor(loop=l13, factor_axis=5)
+sch.annotate(block_or_loop=b0, ann_key="meta_schedule.random_compute_producer", ann_val=1)
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.parallel", ann_val=96)
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.vectorize", ann_val=64)
+v15 = sch.sample_categorical(candidates=[0, 16, 64, 512], probs=[0.25, 0.25, 0.25, 0.25], decision=0)
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.unroll_explicit", ann_val=v15)
+b16, = sch.get_producers(block=b0)
+sch.unannotate(block_or_loop=b0, ann_key="meta_schedule.random_compute_producer")
+l17 = sch.sample_compute_location(block=b0, decision=4)
+sch.compute_at(block=b0, loop=l17, preserve_unit_loops=True, index=-1)
+l18 = sch.sample_compute_location(block=b16, decision=1)
+sch.compute_at(block=b16, loop=l18, preserve_unit_loops=True, index=-1)
+2023-02-16 14:18:38 [INFO] [task_scheduler.cc:168] Design space #2:
+# from tvm.script import tir as T
+@tvm.script.ir_module
+class Module:
+    @T.prim_func
+    def main(p0: T.Buffer[(1, 64, 7, 7, 32), "float32"], tensor: T.Buffer[(1, 64, 1, 1, 32), "float32"]):
+        # function attr dict
+        T.func_attr({"global_symbol": "main", "tir.noalias": True})
+        # body
+        with T.block("root"):
+            T.reads()
+            T.writes()
+            T.block_attr({"meta_schedule.parallel":96, "meta_schedule.unroll_explicit":64, "meta_schedule.vectorize":64})
+            tensor_1 = T.alloc_buffer([1, 64, 1, 1, 32], dtype="float32")
+            for i0, i1, i2, i3, i4 in T.grid(1, 64, 1, 1, 32):
+                for ax0, ax1, ax2, ax3, ax4, ax5, ax6 in T.grid(1, 1, 1, 1, 1, 7, 7):
+                    with T.block("tensor"):
+                        ax0_1 = T.axis.spatial(1, ax0)
+                        ax1_1 = T.axis.spatial(64, i1 + ax1)
+                        ax2_1, ax3_1 = T.axis.remap("SS", [ax2, ax3])
+                        ax4_1 = T.axis.spatial(32, i4 + ax4)
+                        rv0, rv1 = T.axis.remap("RR", [ax5, ax6])
+                        T.reads(p0[ax0_1, ax1_1, ax2_1 * 7 + rv0, ax3_1 * 7 + rv1, ax4_1])
+                        T.writes(tensor_1[ax0_1, ax1_1, ax2_1, ax3_1, ax4_1])
+                        with T.init():
+                            tensor_1[ax0_1, ax1_1, ax2_1, ax3_1, ax4_1] = T.float32(0)
+                        tensor_1[ax0_1, ax1_1, ax2_1, ax3_1, ax4_1] = tensor_1[ax0_1, ax1_1, ax2_1, ax3_1, ax4_1] + p0[ax0_1, ax1_1, ax2_1 * 7 + rv0, ax3_1 * 7 + rv1, ax4_1]
+                with T.block("tensor_1"):
+                    ax0, ax1, ax2, ax3, ax4 = T.axis.remap("SSSSS", [i0, i1, i2, i3, i4])
+                    T.reads(tensor_1[ax0, ax1, ax2, ax3, ax4])
+                    T.writes(tensor[ax0, ax1, ax2, ax3, ax4])
+                    tensor[ax0, ax1, ax2, ax3, ax4] = tensor_1[ax0, ax1, ax2, ax3, ax4] * T.float32(0.020408163265306121)
+    
+
+b0 = sch.get_block(name="tensor", func_name="main")
+b1 = sch.get_block(name="root", func_name="main")
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.parallel", ann_val=96)
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.vectorize", ann_val=64)
+v2 = sch.sample_categorical(candidates=[0, 16, 64, 512], probs=[0.25, 0.25, 0.25, 0.25], decision=2)
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.unroll_explicit", ann_val=v2)
+l3 = sch.sample_compute_location(block=b0, decision=4)
+sch.compute_at(block=b0, loop=l3, preserve_unit_loops=True, index=-1)
+2023-02-16 14:20:39 [INFO] [task_scheduler.cc:158] Initializing Task #54: "fused_nn_global_avg_pool2d"
+2023-02-16 14:20:39 [INFO] [task_scheduler.cc:35] 
+# from tvm.script import tir as T
+@tvm.script.ir_module
+class Module:
+    @T.prim_func
+    def main(p0: T.Buffer[(1, 64, 7, 7, 32), "float32"], tensor: T.Buffer[(1, 64, 1, 1, 32), "float32"]):
+        # function attr dict
+        T.func_attr({"global_symbol": "main", "tir.noalias": True})
+        # body
+        # with T.block("root")
+        tensor_1 = T.alloc_buffer([1, 64, 1, 1, 32], dtype="float32")
+        for i0, i1, i2, i3, i4, i5, i6 in T.grid(1, 64, 1, 1, 32, 7, 7):
+            with T.block("tensor"):
+                ax0, ax1, ax2, ax3, ax4, rv0, rv1 = T.axis.remap("SSSSSRR", [i0, i1, i2, i3, i4, i5, i6])
+                T.reads(p0[ax0, ax1, ax2 * 7 + rv0, ax3 * 7 + rv1, ax4])
+                T.writes(tensor_1[ax0, ax1, ax2, ax3, ax4])
+                with T.init():
+                    tensor_1[ax0, ax1, ax2, ax3, ax4] = T.float32(0)
+                tensor_1[ax0, ax1, ax2, ax3, ax4] = tensor_1[ax0, ax1, ax2, ax3, ax4] + p0[ax0, ax1, ax2 * 7 + rv0, ax3 * 7 + rv1, ax4]
+        for i0, i1, i2, i3, i4 in T.grid(1, 64, 1, 1, 32):
+            with T.block("tensor_1"):
+                ax0, ax1, ax2, ax3, ax4 = T.axis.remap("SSSSS", [i0, i1, i2, i3, i4])
+                T.reads(tensor_1[ax0, ax1, ax2, ax3, ax4])
+                T.writes(tensor[ax0, ax1, ax2, ax3, ax4])
+                tensor[ax0, ax1, ax2, ax3, ax4] = tensor_1[ax0, ax1, ax2, ax3, ax4] * T.float32(0.020408163265306121)
+    
+
+2023-02-16 14:20:39 [INFO] [task_scheduler.cc:162] Total 3 design space(s) generated
+2023-02-16 14:20:39 [INFO] [task_scheduler.cc:168] Design space #0:
+# from tvm.script import tir as T
+@tvm.script.ir_module
+class Module:
+    @T.prim_func
+    def main(p0: T.Buffer[(1, 64, 7, 7, 32), "float32"], tensor: T.Buffer[(1, 64, 1, 1, 32), "float32"]):
+        # function attr dict
+        T.func_attr({"global_symbol": "main", "tir.noalias": True})
+        # body
+        with T.block("root"):
+            T.reads()
+            T.writes()
+            T.block_attr({"meta_schedule.parallel":96, "meta_schedule.unroll_explicit":64, "meta_schedule.vectorize":64})
+            tensor_1 = T.alloc_buffer([1, 64, 1, 1, 32], dtype="float32")
+            tensor_rf = T.alloc_buffer([1, 64, 1, 1, 32, 7], dtype="float32")
+            for i0, i1, i2, i3, i4, i5_i6_fused_0, i5_i6_fused_1 in T.grid(1, 64, 1, 1, 32, 7, 7):
+                with T.block("tensor_rf"):
+                    vi5_i6_fused_0, ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_1 = T.axis.remap("SSSSSSR", [i5_i6_fused_0, i0, i1, i2, i3, i4, i5_i6_fused_1])
+                    T.reads(p0[ax0, ax1, ax2 * 7 + (vi5_i6_fused_0 * 7 + vi5_i6_fused_1) // 7, ax3 * 7 + (vi5_i6_fused_0 * 7 + vi5_i6_fused_1) % 7, ax4])
+                    T.writes(tensor_rf[ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_0])
+                    with T.init():
+                        tensor_rf[ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_0] = T.float32(0)
+                    tensor_rf[ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_0] = tensor_rf[ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_0] + p0[ax0, ax1, ax2 * 7 + (vi5_i6_fused_0 * 7 + vi5_i6_fused_1) // 7, ax3 * 7 + (vi5_i6_fused_0 * 7 + vi5_i6_fused_1) % 7, ax4]
+            for i0, i1, i2, i3, i4, i5_i6_fused_0 in T.grid(1, 64, 1, 1, 32, 7):
+                with T.block("tensor"):
+                    vi5_i6_fused_0, ax0, ax1, ax2, ax3, ax4 = T.axis.remap("RSSSSS", [i5_i6_fused_0, i0, i1, i2, i3, i4])
+                    T.reads(tensor_rf[ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_0])
+                    T.writes(tensor_1[ax0, ax1, ax2, ax3, ax4])
+                    with T.init():
+                        tensor_1[ax0, ax1, ax2, ax3, ax4] = T.float32(0)
+                    tensor_1[ax0, ax1, ax2, ax3, ax4] = tensor_1[ax0, ax1, ax2, ax3, ax4] + tensor_rf[ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_0]
+            for i0, i1, i2, i3, i4 in T.grid(1, 64, 1, 1, 32):
+                with T.block("tensor_1"):
+                    ax0, ax1, ax2, ax3, ax4 = T.axis.remap("SSSSS", [i0, i1, i2, i3, i4])
+                    T.reads(tensor_1[ax0, ax1, ax2, ax3, ax4])
+                    T.writes(tensor[ax0, ax1, ax2, ax3, ax4])
+                    tensor[ax0, ax1, ax2, ax3, ax4] = tensor_1[ax0, ax1, ax2, ax3, ax4] * T.float32(0.020408163265306121)
+    
+
+b0 = sch.get_block(name="tensor", func_name="main")
+b1 = sch.get_block(name="root", func_name="main")
+l2, l3, l4, l5, l6, l7, l8 = sch.get_loops(block=b0)
+l9 = sch.fuse(l7, l8, preserve_unit_iters=True)
+v10, v11 = sch.sample_perfect_tile(loop=l9, n=2, max_innermost_factor=64, decision=[7, 7])
+l12, l13 = sch.split(loop=l9, factors=[v10, v11], preserve_unit_iters=True)
+b14 = sch.rfactor(loop=l12, factor_axis=5)
+sch.annotate(block_or_loop=b0, ann_key="meta_schedule.random_compute_producer", ann_val=1)
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.parallel", ann_val=96)
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.vectorize", ann_val=64)
+v15 = sch.sample_categorical(candidates=[0, 16, 64, 512], probs=[0.25, 0.25, 0.25, 0.25], decision=2)
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.unroll_explicit", ann_val=v15)
+b16, = sch.get_producers(block=b0)
+sch.unannotate(block_or_loop=b0, ann_key="meta_schedule.random_compute_producer")
+l17 = sch.sample_compute_location(block=b0, decision=-1)
+sch.compute_at(block=b0, loop=l17, preserve_unit_loops=True, index=-1)
+l18 = sch.sample_compute_location(block=b16, decision=-1)
+sch.compute_at(block=b16, loop=l18, preserve_unit_loops=True, index=-1)
+2023-02-16 14:20:39 [INFO] [task_scheduler.cc:168] Design space #1:
+# from tvm.script import tir as T
+@tvm.script.ir_module
+class Module:
+    @T.prim_func
+    def main(p0: T.Buffer[(1, 64, 7, 7, 32), "float32"], tensor: T.Buffer[(1, 64, 1, 1, 32), "float32"]):
+        # function attr dict
+        T.func_attr({"global_symbol": "main", "tir.noalias": True})
+        # body
+        with T.block("root"):
+            T.reads()
+            T.writes()
+            T.block_attr({"meta_schedule.parallel":96, "meta_schedule.unroll_explicit":16, "meta_schedule.vectorize":64})
+            tensor_1 = T.alloc_buffer([1, 64, 1, 1, 32], dtype="float32")
+            tensor_rf = T.alloc_buffer([1, 64, 1, 1, 32, 7], dtype="float32")
+            for i0, i1, i2, i3, i4, i5_i6_fused_0, i5_i6_fused_1 in T.grid(1, 64, 1, 1, 32, 7, 7):
+                with T.block("tensor_rf"):
+                    vi5_i6_fused_1, ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_0 = T.axis.remap("SSSSSSR", [i5_i6_fused_1, i0, i1, i2, i3, i4, i5_i6_fused_0])
+                    T.reads(p0[ax0, ax1, ax2 * 7 + (vi5_i6_fused_0 * 7 + vi5_i6_fused_1) // 7, ax3 * 7 + (vi5_i6_fused_0 * 7 + vi5_i6_fused_1) % 7, ax4])
+                    T.writes(tensor_rf[ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_1])
+                    with T.init():
+                        tensor_rf[ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_1] = T.float32(0)
+                    tensor_rf[ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_1] = tensor_rf[ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_1] + p0[ax0, ax1, ax2 * 7 + (vi5_i6_fused_0 * 7 + vi5_i6_fused_1) // 7, ax3 * 7 + (vi5_i6_fused_0 * 7 + vi5_i6_fused_1) % 7, ax4]
+            for i0, i1, i2, i3, i4, i5_i6_fused_1 in T.grid(1, 64, 1, 1, 32, 7):
+                with T.block("tensor"):
+                    vi5_i6_fused_1, ax0, ax1, ax2, ax3, ax4 = T.axis.remap("RSSSSS", [i5_i6_fused_1, i0, i1, i2, i3, i4])
+                    T.reads(tensor_rf[ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_1])
+                    T.writes(tensor_1[ax0, ax1, ax2, ax3, ax4])
+                    with T.init():
+                        tensor_1[ax0, ax1, ax2, ax3, ax4] = T.float32(0)
+                    tensor_1[ax0, ax1, ax2, ax3, ax4] = tensor_1[ax0, ax1, ax2, ax3, ax4] + tensor_rf[ax0, ax1, ax2, ax3, ax4, vi5_i6_fused_1]
+            for i0, i1, i2, i3, i4 in T.grid(1, 64, 1, 1, 32):
+                with T.block("tensor_1"):
+                    ax0, ax1, ax2, ax3, ax4 = T.axis.remap("SSSSS", [i0, i1, i2, i3, i4])
+                    T.reads(tensor_1[ax0, ax1, ax2, ax3, ax4])
+                    T.writes(tensor[ax0, ax1, ax2, ax3, ax4])
+                    tensor[ax0, ax1, ax2, ax3, ax4] = tensor_1[ax0, ax1, ax2, ax3, ax4] * T.float32(0.020408163265306121)
+    
+
+b0 = sch.get_block(name="tensor", func_name="main")
+b1 = sch.get_block(name="root", func_name="main")
+l2, l3, l4, l5, l6, l7, l8 = sch.get_loops(block=b0)
+l9 = sch.fuse(l7, l8, preserve_unit_iters=True)
+v10, v11 = sch.sample_perfect_tile(loop=l9, n=2, max_innermost_factor=64, decision=[7, 7])
+l12, l13 = sch.split(loop=l9, factors=[v10, v11], preserve_unit_iters=True)
+b14 = sch.rfactor(loop=l13, factor_axis=5)
+sch.annotate(block_or_loop=b0, ann_key="meta_schedule.random_compute_producer", ann_val=1)
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.parallel", ann_val=96)
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.vectorize", ann_val=64)
+v15 = sch.sample_categorical(candidates=[0, 16, 64, 512], probs=[0.25, 0.25, 0.25, 0.25], decision=1)
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.unroll_explicit", ann_val=v15)
+b16, = sch.get_producers(block=b0)
+sch.unannotate(block_or_loop=b0, ann_key="meta_schedule.random_compute_producer")
+l17 = sch.sample_compute_location(block=b0, decision=-1)
+sch.compute_at(block=b0, loop=l17, preserve_unit_loops=True, index=-1)
+l18 = sch.sample_compute_location(block=b16, decision=-1)
+sch.compute_at(block=b16, loop=l18, preserve_unit_loops=True, index=-1)
+2023-02-16 14:20:39 [INFO] [task_scheduler.cc:168] Design space #2:
+# from tvm.script import tir as T
+@tvm.script.ir_module
+class Module:
+    @T.prim_func
+    def main(p0: T.Buffer[(1, 64, 7, 7, 32), "float32"], tensor: T.Buffer[(1, 64, 1, 1, 32), "float32"]):
+        # function attr dict
+        T.func_attr({"global_symbol": "main", "tir.noalias": True})
+        # body
+        with T.block("root"):
+            T.reads()
+            T.writes()
+            T.block_attr({"meta_schedule.parallel":96, "meta_schedule.unroll_explicit":16, "meta_schedule.vectorize":64})
+            tensor_1 = T.alloc_buffer([1, 64, 1, 1, 32], dtype="float32")
+            for i0, i1, i2, i3, i4, i5, i6 in T.grid(1, 64, 1, 1, 32, 7, 7):
+                with T.block("tensor"):
+                    ax0, ax1, ax2, ax3, ax4, rv0, rv1 = T.axis.remap("SSSSSRR", [i0, i1, i2, i3, i4, i5, i6])
+                    T.reads(p0[ax0, ax1, ax2 * 7 + rv0, ax3 * 7 + rv1, ax4])
+                    T.writes(tensor_1[ax0, ax1, ax2, ax3, ax4])
+                    with T.init():
+                        tensor_1[ax0, ax1, ax2, ax3, ax4] = T.float32(0)
+                    tensor_1[ax0, ax1, ax2, ax3, ax4] = tensor_1[ax0, ax1, ax2, ax3, ax4] + p0[ax0, ax1, ax2 * 7 + rv0, ax3 * 7 + rv1, ax4]
+            for i0, i1, i2, i3, i4 in T.grid(1, 64, 1, 1, 32):
+                with T.block("tensor_1"):
+                    ax0, ax1, ax2, ax3, ax4 = T.axis.remap("SSSSS", [i0, i1, i2, i3, i4])
+                    T.reads(tensor_1[ax0, ax1, ax2, ax3, ax4])
+                    T.writes(tensor[ax0, ax1, ax2, ax3, ax4])
+                    tensor[ax0, ax1, ax2, ax3, ax4] = tensor_1[ax0, ax1, ax2, ax3, ax4] * T.float32(0.020408163265306121)
+    
+
+b0 = sch.get_block(name="tensor", func_name="main")
+b1 = sch.get_block(name="root", func_name="main")
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.parallel", ann_val=96)
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.vectorize", ann_val=64)
+v2 = sch.sample_categorical(candidates=[0, 16, 64, 512], probs=[0.25, 0.25, 0.25, 0.25], decision=1)
+sch.annotate(block_or_loop=b1, ann_key="meta_schedule.unroll_explicit", ann_val=v2)
+l3 = sch.sample_compute_location(block=b0, decision=-1)
+sch.compute_at(block=b0, loop=l3, preserve_unit_loops=True, index=-1)
+2023-02-16 15:31:57 [INFO] [evolutionary_search.cc:713] Generating candidates......
+2023-02-16 15:31:57 [INFO] [evolutionary_search.cc:715] Picked top 0 candidate(s) from database
+2023-02-16 15:31:57 [INFO] [evolutionary_search.cc:533] Sample-Init-Population summary:
+Postproc #0 [meta_schedule.DisallowDynamicLoop(0x2fb8f0f8)]: 0 failure(s)
+Postproc #1 [meta_schedule.RewriteParallelVectorizeUnroll(0x2f458618)]: 0 failure(s)
+Postproc #2 [meta_schedule.RewriteReductionBlock(0x2e419028)]: 0 failure(s)
+Postproc #3 [meta_schedule.RewriteLayout(0x20a097c8)]: 0 failure(s)
+2023-02-16 15:31:57 [INFO] [evolutionary_search.cc:723] Sampled 512 candidate(s)
+2023-02-16 15:31:58 [INFO] [evolutionary_search.cc:621] Evolve iter #0 done. Summary:
+Postproc #0 [meta_schedule.DisallowDynamicLoop(0x2fb8f0f8)]: 0 failure(s)
+Postproc #1 [meta_schedule.RewriteParallelVectorizeUnroll(0x2f458618)]: 0 failure(s)
+Postproc #2 [meta_schedule.RewriteReductionBlock(0x2e419028)]: 0 failure(s)
+Postproc #3 [meta_schedule.RewriteLayout(0x20a097c8)]: 0 failure(s)
+2023-02-16 15:31:58 [INFO] [evolutionary_search.cc:621] Evolve iter #1 done. Summary:
+Postproc #0 [meta_schedule.DisallowDynamicLoop(0x2fb8f0f8)]: 0 failure(s)
+Postproc #1 [meta_schedule.RewriteParallelVectorizeUnroll(0x2f458618)]: 0 failure(s)
+Postproc #2 [meta_schedule.RewriteReductionBlock(0x2e419028)]: 0 failure(s)
+Postproc #3 [meta_schedule.RewriteLayout(0x20a097c8)]: 0 failure(s)
+2023-02-16 15:31:59 [INFO] [evolutionary_search.cc:621] Evolve iter #2 done. Summary:
+Postproc #0 [meta_schedule.DisallowDynamicLoop(0x2fb8f0f8)]: 0 failure(s)
+Postproc #1 [meta_schedule.RewriteParallelVectorizeUnroll(0x2f458618)]: 0 failure(s)
+Postproc #2 [meta_schedule.RewriteReductionBlock(0x2e419028)]: 0 failure(s)
+Postproc #3 [meta_schedule.RewriteLayout(0x20a097c8)]: 0 failure(s)
+2023-02-16 15:32:00 [INFO] [evolutionary_search.cc:621] Evolve iter #3 done. Summary:
+Postproc #0 [meta_schedule.DisallowDynamicLoop(0x2fb8f0f8)]: 0 failure(s)
+Postproc #1 [meta_schedule.RewriteParallelVectorizeUnroll(0x2f458618)]: 0 failure(s)
+Postproc #2 [meta_schedule.RewriteReductionBlock(0x2e419028)]: 0 failure(s)
+Postproc #3 [meta_schedule.RewriteLayout(0x20a097c8)]: 0 failure(s)
+2023-02-16 15:32:00 [INFO] [evolutionary_search.cc:649] Scores of the best 64 candidates:
+[1 : 16]:	0.9963  0.9902  0.9891  0.9878  0.9871  0.9858  0.9843  0.9789  0.9781  0.9776  0.9670  0.9610  0.9565  0.9510  0.9423  0.9373
+[17 : 32]:	0.9349  0.9252  0.9245  0.9236  0.9215  0.9214  0.9189  0.9135  0.9101  0.8964  0.8934  0.8855  0.8634  0.8627  0.8596  0.8515
+[33 : 48]:	0.8449  0.8435  0.8433  0.8409  0.8383  0.8366  0.8329  0.8237  0.7924  0.7923  0.7879  0.7866  0.7860  0.7855  0.7847  0.7829
+[49 : 64]:	0.7784  0.7781  0.7755  0.7740  0.7603  0.7573  0.7551  0.7525  0.7499  0.7493  0.7449  0.7445  0.7435  0.7411  0.7360  0.7346
+2023-02-16 15:32:00 [INFO] [evolutionary_search.cc:727] Got 64 candidate(s) with evolutionary search
+2023-02-16 15:32:00 [INFO] [evolutionary_search.cc:730] Sending 64 candidates(s) for measurement
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #1: GFLOPs: 9.7874. Time: 10.4625 us. Best GFLOPs: 9.7874
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #2: GFLOPs: 6.4283. Time: 15.9295 us. Best GFLOPs: 9.7874
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #3: GFLOPs: 5.5664. Time: 18.3960 us. Best GFLOPs: 9.7874
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #4: GFLOPs: 9.2225. Time: 11.1032 us. Best GFLOPs: 9.7874
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #5: GFLOPs: 5.4822. Time: 18.6787 us. Best GFLOPs: 9.7874
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #6: GFLOPs: 9.5318. Time: 10.7430 us. Best GFLOPs: 9.7874
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #7: GFLOPs: 3.7931. Time: 26.9963 us. Best GFLOPs: 9.7874
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #8: GFLOPs: 8.9728. Time: 11.4123 us. Best GFLOPs: 9.7874
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #9: GFLOPs: 10.3694. Time: 9.8752 us. Best GFLOPs: 10.3694
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #10: GFLOPs: 9.9760. Time: 10.2646 us. Best GFLOPs: 10.3694
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #11: GFLOPs: 37.0881. Time: 2.7610 us. Best GFLOPs: 37.0881
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #12: GFLOPs: 4.8725. Time: 21.0159 us. Best GFLOPs: 37.0881
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #13: GFLOPs: 21.7581. Time: 4.7063 us. Best GFLOPs: 37.0881
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #14: GFLOPs: 11.6949. Time: 8.7559 us. Best GFLOPs: 37.0881
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #15: GFLOPs: 21.2806. Time: 4.8119 us. Best GFLOPs: 37.0881
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #16: GFLOPs: 6.6191. Time: 15.4705 us. Best GFLOPs: 37.0881
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #17: GFLOPs: 6.2935. Time: 16.2709 us. Best GFLOPs: 37.0881
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #18: GFLOPs: 7.7987. Time: 13.1305 us. Best GFLOPs: 37.0881
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #19: GFLOPs: 6.8194. Time: 15.0159 us. Best GFLOPs: 37.0881
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #20: GFLOPs: 3.3271. Time: 30.7777 us. Best GFLOPs: 37.0881
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #21: GFLOPs: 3.5943. Time: 28.4897 us. Best GFLOPs: 37.0881
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #22: GFLOPs: 6.6770. Time: 15.3362 us. Best GFLOPs: 37.0881
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #23: GFLOPs: 6.0202. Time: 17.0093 us. Best GFLOPs: 37.0881
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #24: GFLOPs: 5.3736. Time: 19.0562 us. Best GFLOPs: 37.0881
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #25: GFLOPs: 38.0242. Time: 2.6930 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #26: GFLOPs: 4.6206. Time: 22.1617 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #27: GFLOPs: 37.0163. Time: 2.7664 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #28: GFLOPs: 5.6477. Time: 18.1314 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #29: GFLOPs: 15.0097. Time: 6.8222 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #30: GFLOPs: 20.6422. Time: 4.9607 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #31: GFLOPs: 5.6807. Time: 18.0258 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #32: GFLOPs: 36.8281. Time: 2.7805 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #33: GFLOPs: 13.6976. Time: 7.4757 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #34: GFLOPs: 5.4672. Time: 18.7300 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #35: GFLOPs: 12.3362. Time: 8.3008 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #36: GFLOPs: 4.8251. Time: 21.2225 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #37: GFLOPs: 14.9843. Time: 6.8338 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #38: GFLOPs: 9.9526. Time: 10.2887 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #39: GFLOPs: 6.0861. Time: 16.8253 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #40: GFLOPs: 5.5989. Time: 18.2893 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #41: GFLOPs: 15.0697. Time: 6.7951 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #42: GFLOPs: 6.8297. Time: 14.9933 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #43: GFLOPs: 5.8654. Time: 17.4584 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #44: GFLOPs: 9.4561. Time: 10.8290 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #45: GFLOPs: 11.6610. Time: 8.7814 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #46: GFLOPs: 13.8889. Time: 7.3728 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #47: GFLOPs: 7.8307. Time: 13.0767 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #48: GFLOPs: 5.5878. Time: 18.3257 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #49: GFLOPs: 5.9295. Time: 17.2695 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #50: GFLOPs: 5.0708. Time: 20.1940 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #51: GFLOPs: 2.3470. Time: 43.6295 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #52: GFLOPs: 6.6496. Time: 15.3995 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #53: GFLOPs: 10.0734. Time: 10.1653 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #54: GFLOPs: 3.6193. Time: 28.2928 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #55: GFLOPs: 7.0546. Time: 14.5153 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #56: GFLOPs: 5.7112. Time: 17.9298 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #57: GFLOPs: 4.0692. Time: 25.1647 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #58: GFLOPs: 32.5314. Time: 3.1477 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #59: GFLOPs: 8.0660. Time: 12.6952 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #60: GFLOPs: 9.5906. Time: 10.6772 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #61: GFLOPs: 12.5338. Time: 8.1699 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #62: GFLOPs: 8.7713. Time: 11.6744 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #63: GFLOPs: 12.0321. Time: 8.5105 us. Best GFLOPs: 38.0242
+2023-02-16 15:36:43 [INFO] [task_scheduler.cc:129] [Task #54: fused_nn_global_avg_pool2d] Trial #64: GFLOPs: 5.8228. Time: 17.5860 us. Best GFLOPs: 38.0242
